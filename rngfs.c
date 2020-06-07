@@ -171,7 +171,7 @@ xread(Req *r)
 	char buf[128];
 	int n = 0;
 	uvlong path = r->fid->qid.path;
-	Fstate *fs = r->fid->aux;
+	Fstate *st = r->fid->aux;
 
 	if(path == Qroot){
 		dirread9p(r, rootgen, r);
@@ -182,11 +182,11 @@ xread(Req *r)
 	switch(path){
 	case Qinteger:
 		n = snprint(buf, sizeof buf, "%ld\n",
-			randominteger(fs->min.i, fs->max.i));
+			randominteger(st->min.i, st->max.i));
 		break;
 	case Qreal:
 		n = snprint(buf, sizeof buf, "%f\n",
-			randomreal(fs->min.d, fs->max.d));
+			randomreal(st->min.d, st->max.d));
 		break;
 	}
 	if(r->ifcall.count < n)
@@ -202,7 +202,7 @@ xwrite(Req *r)
 	uvlong path = r->fid->qid.path;
 	Cmdbuf *cb;
 	Cmdtab *cp;
-	Fstate *fs = r->fid->aux;
+	Fstate *st = r->fid->aux;
 
 	cb = parsecmd(r->ifcall.data, r->ifcall.count);
 	cp = lookupcmd(cb, cmd, nelem(cmd));
@@ -214,19 +214,19 @@ xwrite(Req *r)
 	case Cmdrange:
 		switch(path){
 		case Qinteger:
-			fs->min.i = strtol(cb->f[1], nil, 10);
-			fs->max.i = strtol(cb->f[2], nil, 10);
+			st->min.i = strtol(cb->f[1], nil, 10);
+			st->max.i = strtol(cb->f[2], nil, 10);
 			break;
 		case Qreal:
-			fs->min.d = strtod(cb->f[1], nil);
-			fs->max.d = strtod(cb->f[1], nil);
+			st->min.d = strtod(cb->f[1], nil);
+			st->max.d = strtod(cb->f[1], nil);
 		}
 		break;
 	}
 	respond(r, nil);
 }
 
-Srv fileserver = {
+Srv fs = {
 	.attach = xattach,
 	.walk1 = xwalk1,
 	.open = xopen,
@@ -259,6 +259,6 @@ main(int argc, char *argv[])
 	}ARGEND;
 	
 	srand(time(0));
-	postmountsrv(&fileserver, srvn, mtpt, MREPL);
+	postmountsrv(&fs, srvn, mtpt, MREPL);
 	exits(nil);
 }
