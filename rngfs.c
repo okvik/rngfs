@@ -219,7 +219,7 @@ xwrite(Req *r)
 			break;
 		case Qreal:
 			st->min.d = strtod(cb->f[1], nil);
-			st->max.d = strtod(cb->f[1], nil);
+			st->max.d = strtod(cb->f[2], nil);
 		}
 		break;
 	}
